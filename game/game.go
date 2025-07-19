@@ -55,7 +55,7 @@ func (g *Game) Initialize() {
 
 	initialDots := &DoublyLinkedList{}
 	const dotOffset = 3
-	const totalDots = 200
+	const totalDots = 300
 	count := 0
 	for count < totalDots {
 		x := r.Intn(g.gridWidth-(dotOffset*2)) + dotOffset
@@ -166,10 +166,10 @@ func (g *Game) DrawDotsAndSnake(screen *ebiten.Image) {
 		point := g.Snake.segments[i]
 
 		index := (point.X + (g.gridWidth * point.Y)) * 4
-		pixels[index] = 0xFF // white, for now
+		pixels[index] = 0x00 // white, for now
 		pixels[index+1] = 0xFF
-		pixels[index+2] = 0xFF
-		pixels[index+3] = 0xFF
+		pixels[index+2] = 0x00
+		pixels[index+3] = 0x00
 	}
 	// fmt.Printf("Dump of pixels: %v\n", pixels)
 
@@ -179,18 +179,21 @@ func (g *Game) DrawDotsAndSnake(screen *ebiten.Image) {
 func (g *Game) Draw(screen *ebiten.Image) {
 	switch g.State {
 	case GameStateIntro:
-		ebitenutil.DebugPrint(screen, "Press any key to start")
+		ebitenutil.DebugPrintAt(screen, "Press any key to start", 1, 1)
 	case GameStatePlaying:
 		g.DrawDotsAndSnake(screen)
-		ebitenutil.DebugPrint(screen, "Game in progress")
+		ebitenutil.DebugPrintAt(screen, "Game in progress", 1, 1)
 	case GameStateWon:
-		ebitenutil.DebugPrint(screen, "Congrats, you won :)")
+		ebitenutil.DebugPrintAt(screen, "Congrats, you won :)", 1, 1)
 	case GameStateLost:
-		ebitenutil.DebugPrint(screen, "Game over :/")
+		ebitenutil.DebugPrintAt(screen, "Game over :/", 1, 1)
 	case GameStatePaused:
 		g.DrawDotsAndSnake(screen)
-		ebitenutil.DebugPrint(screen, "Game paused. Press space to resume")
+		ebitenutil.DebugPrintAt(screen, "Game paused", 1, 1)
+		ebitenutil.DebugPrintAt(screen, "Press space to resume", 1, 16)
 	}
+
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Score: %d points", g.Score), 200, 1)
 
 }
 

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
-
-	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type Snake struct {
@@ -49,7 +47,7 @@ func (s *Snake) Move() {
 	segmentsToDelete := len(s.segments) - s.length
 	if segmentsToDelete > 0 {
 		// Shave `segmentsToDelete` items from the front of the slice
-		s.segments = s.segments[:segmentsToDelete] // sic?
+		s.segments = s.segments[segmentsToDelete:] // sic?
 	}
 
 	s.x = nextX
@@ -84,41 +82,6 @@ func (s *Snake) HasCollisionWithSelf() bool {
 
 func (s *Snake) Grow() {
 	s.nextLength++
-}
-
-func (s *Snake) Draw() *ebiten.Image {
-	// Compute width and height based on min/max X and Y values in segments
-	var minX, maxX, minY, maxY int
-
-	for i := range s.segments {
-		point := s.segments[i]
-		if point.X < minX {
-			minX = point.X
-		}
-		if point.X > maxX {
-			maxX = point.X
-		}
-		if point.Y < minX {
-			minY = point.Y
-		}
-		if point.Y > maxY {
-			maxY = point.Y
-		}
-	}
-
-	width := maxX - minX
-	height := maxY - minY
-
-	fmt.Printf("Creating snake image with dimensions %dx%d\n", width, height)
-	image := ebiten.NewImage(width, height)
-	for i := range s.segments {
-		point := s.segments[i]
-		fmt.Printf("Drawing point %d, %d\n", point.X, point.Y)
-		// screen.WritePixels()
-		// TODO: Plot pixel to screen
-	}
-
-	return image
 }
 
 func NewSnake(startX int, startY int) (*Snake, error) {

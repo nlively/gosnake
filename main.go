@@ -40,7 +40,7 @@ func main() {
 
 	game.Initialize()
 
-	ebiten.SetWindowSize(640, 480)
+	ebiten.SetWindowSize(1024, 768)
 	ebiten.SetWindowTitle("Snake")
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
