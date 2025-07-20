@@ -88,6 +88,11 @@ func (g *Game) Update() error {
 		if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 			g.SetState(GameStatePlaying)
 		}
+	case GameStateLost, GameStateWon:
+		if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+			g.Initialize()
+			g.StartPlaying()
+		}
 	case GameStatePlaying:
 		// Respond to arrow keys for changing direction, but don't allow a direct reversal without a turn
 		if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
@@ -179,14 +184,15 @@ func (g *Game) DrawDotsAndSnake(screen *ebiten.Image) {
 func (g *Game) Draw(screen *ebiten.Image) {
 	switch g.State {
 	case GameStateIntro:
-		ebitenutil.DebugPrintAt(screen, "Press any key to start", 1, 1)
+		ebitenutil.DebugPrintAt(screen, "Press enter to start", 1, 1)
 	case GameStatePlaying:
 		g.DrawDotsAndSnake(screen)
 		ebitenutil.DebugPrintAt(screen, "Game in progress", 1, 1)
 	case GameStateWon:
 		ebitenutil.DebugPrintAt(screen, "Congrats, you won :)", 1, 1)
 	case GameStateLost:
-		ebitenutil.DebugPrintAt(screen, "Game over :/", 1, 1)
+		ebitenutil.DebugPrintAt(screen, "Game over :(", 1, 1)
+		ebitenutil.DebugPrintAt(screen, "Press enter to play again", 1, 16)
 	case GameStatePaused:
 		g.DrawDotsAndSnake(screen)
 		ebitenutil.DebugPrintAt(screen, "Game paused", 1, 1)
