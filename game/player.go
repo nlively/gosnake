@@ -61,5 +61,5 @@ func (p *Player) SendMessage(to *Player) {
 		os.Exit(1)
 	}
 
-	fmt.Println("Message sent:", msg)
+	fmt.Printf("Message sent to %s:%d: %s\n", to.IPAddress, to.Port, msg)
 }
