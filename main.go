@@ -57,9 +57,9 @@ func main() {
 		Port:      cfg.PeerPort,
 	}
 
-	player1.Listen()
+	go player1.Listen()
 
-	player1.SendMessage(player2)
+	go player1.SendMessage(player2)
 
 	game := game.NewGame(GridWidth, GridHeight)
 
