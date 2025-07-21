@@ -26,10 +26,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hajimehoshi/ebiten/v2"
 	"noahlively.com/snakegame/config"
 	"noahlively.com/snakegame/game"
-
-	"github.com/hajimehoshi/ebiten/v2"
 )
 
 const (
@@ -38,16 +37,20 @@ const (
 )
 
 func main() {
+	fmt.Println("Main!")
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		fmt.Errorf("failed to load config: %w", err)
+		log.Fatalf("failed to load config: %w", err)
+		fmt.Println("error")
 	}
+
+	fmt.Printf("Config: %v\n", *cfg)
 
 	player1 := &game.Player{
 		ID:        "player1",
 		Name:      "Abbot",
 		IPAddress: "127.0.0.1",
-		Port:      3000,
+		Port:      cfg.LocalPort,
 	}
 
 	player2 := &game.Player{
@@ -57,11 +60,16 @@ func main() {
 		Port:      cfg.PeerPort,
 	}
 
+	fmt.Printf("Player 1: %v\n", *player1)
+	fmt.Printf("Player 2: %v\n", *player2)
+
 	go player1.Listen()
 
 	go player1.SendMessage(player2)
 
 	game := game.NewGame(GridWidth, GridHeight)
+
+	fmt.Printf("Game: %v\n", *game)
 
 	game.Initialize()
 

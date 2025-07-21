@@ -8,13 +8,14 @@ import (
 )
 
 type Config struct {
-	PeerAddress string `env:PEER_ADDRESS`
-	PeerPort    int    `env:PEER_PORT`
+	LocalPort   int    `envconfig:"LOCAL_PORT" required:"true"`
+	PeerAddress string `envconfig:"PEER_ADDRESS" required:"true"`
+	PeerPort    int    `envconfig:"PEER_PORT" required:"true"`
 }
 
 func LoadConfig() (*Config, error) {
-	// Load the .env fiole
-	err := godotenv.Load()
+	// Load the .env file
+	err := godotenv.Load(".env")
 	if err != nil {
 		return nil, fmt.Errorf("error loading .env file: %w", err)
 	}

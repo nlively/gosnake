@@ -16,6 +16,7 @@ type Player struct {
 }
 
 func (p *Player) Listen() {
+	fmt.Printf("Player.Listen(). IP address %s, port %d\n", p.IPAddress, p.Port)
 	addr := net.UDPAddr{
 		Port: p.Port,
 		IP:   net.ParseIP(p.IPAddress),
@@ -23,6 +24,7 @@ func (p *Player) Listen() {
 
 	conn, err := net.ListenUDP("udp", &addr)
 	if err != nil {
+		fmt.Printf("error listening to udp port: %w\n", err)
 		panic(err)
 	}
 	defer conn.Close()
@@ -47,6 +49,7 @@ func (p *Player) SendMessage(to *Player) {
 		IP:   net.ParseIP(to.IPAddress),
 	})
 	if err != nil {
+		fmt.Printf("error messaging udp address %s using port %d: %w\n", to.IPAddress, to.Port, err)
 		panic(err)
 	}
 	defer conn.Close()

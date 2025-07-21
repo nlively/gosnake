@@ -65,7 +65,6 @@ func (g *Game) Initialize() {
 			initialDots.InsertAtEnd(NewRandomDot(point))
 			gameGrid.PlotPoint(point)
 			dotGrid.PlotPoint(point)
-			fmt.Printf("Dot generated at %d,%d\n", point.X, point.Y)
 			count++
 		}
 	}
