@@ -19,7 +19,7 @@ func (p *Player) Listen() {
 	fmt.Printf("Player.Listen(). IP address %s, port %d\n", p.IPAddress, p.Port)
 	addr := net.UDPAddr{
 		Port: p.Port,
-		IP:   net.ParseIP(p.IPAddress),
+		IP:   net.ParseIP("0.0.0.0"),
 	}
 
 	conn, err := net.ListenUDP("udp", &addr)

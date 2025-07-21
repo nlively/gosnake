@@ -68,6 +68,8 @@ func main() {
 	go player1.SendMessage(player2)
 
 	game := game.NewGame(GridWidth, GridHeight)
+	game.Player1 = player1
+	game.Player2 = player2
 
 	fmt.Printf("Game: %v\n", *game)
 

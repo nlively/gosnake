@@ -20,6 +20,8 @@ type Game struct {
 	State      GameState
 	Dots       *DoublyLinkedList
 	Score      int
+	Player1    *Player
+	Player2    *Player
 }
 
 func (g *Game) SetState(newState GameState) {
@@ -82,6 +84,9 @@ func (g *Game) StartPlaying() {
 }
 
 func (g *Game) Update() error {
+	if inpututil.IsKeyJustPressed(ebiten.KeyM) {
+		g.Player1.SendMessage(g.Player2)
+	}
 	switch g.State {
 	case GameStatePaused:
 		if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
