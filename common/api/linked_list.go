@@ -1,4 +1,4 @@
-package game
+package api
 
 type DoublyLinkedListNode struct {
 	dot      *Dot

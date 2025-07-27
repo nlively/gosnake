@@ -1,4 +1,4 @@
-package game
+package api
 
 type Grid struct {
 	width  int

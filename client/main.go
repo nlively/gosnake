@@ -1,98 +1,81 @@
-package game
+package client
 
 import (
 	"fmt"
 	"log"
-	"math/rand"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"noahlively.com/snakegame/config"
+	"noahlively.com/snakegame/game"
 )
 
-type Game struct {
-	gridWidth  int
-	gridHeight int
-	fullGrid   *Grid
-	dotGrid    *Grid
-	Snake      *Snake
-	State      GameState
-	Dots       *DoublyLinkedList
-	Score      int
-	Player1    *Player
-	Player2    *Player
-}
+/**
 
-func (g *Game) SetState(newState GameState) {
-	g.State = newState
-}
+func (p *Player) Listen() {
+	fmt.Printf("Player.Listen(). IP address %s, port %d\n", p.IPAddress, p.Port)
+	addr := net.UDPAddr{
+		Port: p.Port,
+		IP:   net.ParseIP("0.0.0.0"),
+	}
 
-func NewGame(gridWidth int, gridHeight int) *Game {
-	return &Game{gridWidth: gridWidth, gridHeight: gridHeight}
-}
-
-func (g *Game) Initialize() {
-	gameGrid := NewGrid(g.gridWidth, g.gridHeight)
-	dotGrid := NewGrid(g.gridWidth, g.gridHeight)
-
-	// Random X and Y coords within the grid
-	source := rand.NewSource(time.Now().UnixNano())
-	r := rand.New(source)
-
-	const (
-		xOffset = 40
-		yOffset = 40
-	)
-
-	x := r.Intn(g.gridWidth-(xOffset*2)) + xOffset
-	y := r.Intn(g.gridHeight-(yOffset*2)) + yOffset
-
-	snake, err := NewSnake(x, y)
+	conn, err := net.ListenUDP("udp", &addr)
 	if err != nil {
-		log.Fatalf("error creating snake: %v\n", err)
+		fmt.Printf("error listening to udp port: %w\n", err)
+		panic(err)
 	}
-	fmt.Printf("Starting snake at %d,%d\n", x, y)
-	gameGrid.PlotPoints(snake.segments)
+	defer conn.Close()
 
-	initialDots := &DoublyLinkedList{}
-	const dotOffset = 3
-	const totalDots = 300
-	count := 0
-	for count < totalDots {
-		x := r.Intn(g.gridWidth-(dotOffset*2)) + dotOffset
-		y := r.Intn(g.gridHeight-(dotOffset*2)) + dotOffset
-		point := Point{x, y}
-		if !gameGrid.IsPointFilled(point) {
-			initialDots.InsertAtEnd(NewRandomDot(point))
-			gameGrid.PlotPoint(point)
-			dotGrid.PlotPoint(point)
-			count++
+	buf := make([]byte, 1024)
+
+	fmt.Printf("Listening on %s:%d\n", p.IPAddress, p.Port)
+
+	for {
+		n, remoteAddr, err := conn.ReadFromUDP(buf)
+		if err != nil {
+			fmt.Println("Error: ", err)
+			continue
 		}
+		fmt.Printf("Received message from %v: %s\n", remoteAddr, string(buf[:n]))
+	}
+}
+
+func (p *Player) SendMessage(to *Player) {
+	conn, err := net.DialUDP("udp", nil, &net.UDPAddr{
+		Port: to.Port,
+		IP:   net.ParseIP(to.IPAddress),
+	})
+	if err != nil {
+		fmt.Printf("error messaging udp address %s using port %d: %w\n", to.IPAddress, to.Port, err)
+		panic(err)
+	}
+	defer conn.Close()
+
+	msg := fmt.Sprintf("Hello from %s", p.Name)
+	_, err = conn.Write([]byte(msg))
+	if err != nil {
+		fmt.Println("Write error: ", err)
+		os.Exit(1)
 	}
 
-	g.fullGrid = gameGrid
-	g.dotGrid = dotGrid
-	g.Snake = snake
-	g.State = GameStateIntro
-	g.Score = 0
-	g.Dots = initialDots
+	fmt.Printf("Message sent to %s:%d: %s\n", to.IPAddress, to.Port, msg)
 }
 
-func (g *Game) StartPlaying() {
-	g.SetState(GameStatePlaying)
-}
+**/
 
 func (g *Game) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyM) {
-		g.Player1.SendMessage(g.Player2)
+		g.ThisPlayer.SendMessage(g.Player2)
 	}
 	switch g.State {
+	case GameStateSetup:
+		g.DelegatedSetup()
 	case GameStatePaused:
 		if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 			g.SetState(GameStatePlaying)
 		}
-	case GameStateLost, GameStateWon:
+	case GameStateOver:
 		if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 			g.Initialize()
 			g.StartPlaying()
@@ -185,19 +168,18 @@ func (g *Game) DrawDotsAndSnake(screen *ebiten.Image) {
 	screen.WritePixels(pixels)
 }
 
-func (g *Game) Draw(screen *ebiten.Image) {
+func (g *game.Game) Draw(screen *ebiten.Image) {
 	switch g.State {
-	case GameStateIntro:
+	case game.GameStateIntro:
 		ebitenutil.DebugPrintAt(screen, "Press enter to start", 1, 1)
-	case GameStatePlaying:
+	case game.GameStatePlaying:
 		g.DrawDotsAndSnake(screen)
 		ebitenutil.DebugPrintAt(screen, "Game in progress", 1, 1)
-	case GameStateWon:
+	case game.GameStateOver:
 		ebitenutil.DebugPrintAt(screen, "Congrats, you won :)", 1, 1)
-	case GameStateLost:
 		ebitenutil.DebugPrintAt(screen, "Game over :(", 1, 1)
 		ebitenutil.DebugPrintAt(screen, "Press enter to play again", 1, 16)
-	case GameStatePaused:
+	case game.GameStatePaused:
 		g.DrawDotsAndSnake(screen)
 		ebitenutil.DebugPrintAt(screen, "Game paused", 1, 1)
 		ebitenutil.DebugPrintAt(screen, "Press space to resume", 1, 16)
@@ -209,4 +191,35 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return g.gridWidth, g.gridHeight
+}
+
+func main() {
+	fmt.Println("Main!")
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("failed to load config: %w", err)
+		fmt.Println("error")
+	}
+
+	client := NewGameClient()
+
+	fmt.Printf("Config: %v\n", *cfg)
+
+	go player1.Listen()
+
+	go player1.SendMessage(player2)
+
+	game := game.NewGame(GridWidth, GridHeight)
+	game.Player1 = player1
+	game.Player2 = player2
+
+	fmt.Printf("Game: %v\n", *game)
+
+	game.Initialize()
+
+	ebiten.SetWindowSize(1024, 768)
+	ebiten.SetWindowTitle("Snake")
+	if err := ebiten.RunGame(game); err != nil {
+		log.Fatal(err)
+	}
 }
