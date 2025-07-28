@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	game "github.com/nlively/gosnake/common/api"
+	"github.com/nlively/gosnake/server/internal/config"
 )
 
 type CreateGameOptions struct {
@@ -18,7 +19,7 @@ func NewServer(config config.ServerConfig) *GamePool {
 	s := &GamePool{
 		Games:    make(map[string]*ManagedGameInstance, 0),
 		Status:   ServerStateInitializing,
-		MaxGames: config.MaxConnections,
+		MaxGames: config.MaxGames,
 	}
 
 	return s
@@ -34,6 +35,7 @@ func (s *GamePool) Run() error {
 	}()
 
 	s.Status = ServerStateReady
+	return nil
 }
 
 func (s *GamePool) CreateGame(options CreateGameOptions) (*ManagedGameInstance, error) {
@@ -75,6 +77,8 @@ func (s *GamePool) JoinGame(game *ManagedGameInstance) error {
 
 func (s *GamePool) LeaveGame(game *ManagedGameInstance) error {
 	// find player in game
+
+	return nil
 }
 
 // Run this periodically

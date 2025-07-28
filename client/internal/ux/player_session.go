@@ -1,4 +1,4 @@
-package client
+package ux
 
 type PlayerSession struct {
 	Name           string

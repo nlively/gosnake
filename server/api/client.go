@@ -20,7 +20,7 @@ func NewClient(conn net.Conn) *APIClient {
 	}
 }
 
-func Connect(config config.ServerConfig) (*net.Conn, error) {
+func Connect(host string, port int) (*net.Conn, error) {
 	// TODO: establish TCP/IP connection
 	return nil, nil
 }

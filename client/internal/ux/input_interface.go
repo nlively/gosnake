@@ -1,4 +1,4 @@
-package client
+package ux
 
 type InputInterface string
 

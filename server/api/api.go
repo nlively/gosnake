@@ -1,7 +1,9 @@
 package api
 
+import game "github.com/nlively/gosnake/common/api"
+
 type GoSnakeAPI interface {
-	CreateGame(options CreateGameOptions) error
+	CreateGame(options CreateGameOptions) (*game.Game, error)
 	LeaveGame()
 }
 
