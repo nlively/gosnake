@@ -30,20 +30,30 @@ type GameClient struct {
 }
 
 func NewGameClient(config config.ClientConfig) *GameClient {
-
 	client := &GameClient{
 		Config: config,
 	}
 
-	return nil
+	return client
 }
 
-func (c *GameClient) Connect() error {
-	conn, err := api.Connect(c.Config.ServerHost, c.Config.ServerPort)
-	if err != nil {
-		return err
-	}
+func (c *GameClient) listenToServer(conn net.Conn, readyChan chan<- bool, doneChan chan<- bool) {
+	reader := bufio.NewReader(conn)
+	for {
+		message, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Connection closed by server.")
+			os.Exit(0)
+		}
 
+		// Check if this is the "ready" message from the server
+		if message == "READY\n" {
+			readyChan <- true
+			close(readyChan)
+		}
+
+		fmt.Printf("Server says: %s\n", message)
+	}
 }
 
 func (c *GameClient) CreateGame() error {
@@ -67,23 +77,21 @@ func (c *GameClient) Run() error {
 	}
 	defer conn.Close()
 
+	apiClient := api.NewClient(conn)
+
+	readyChan := make(chan bool)
+	doneChan := make(chan bool)
+
 	// Listen for messages from the server
-	go func() {
-		reader := bufio.NewReader(conn)
-		for {
-			message, err := reader.ReadString('\n')
-			if err != nil {
-				fmt.Println("Connection closed by server.")
-				os.Exit(0)
-			}
-			fmt.Printf("Server says: %s\n", message)
-		}
-	}()
+	go c.listenToServer(conn, readyChan, doneChan)
 
-	err = c.CreateGame()
-	if err != nil {
-		return err
-	}
+	// Wait for server to be "ready"
+	<-readyChan
+	fmt.Println("Server is ready")
 
+	go c.CreateGame()
+
+	<-doneChan
+	fmt.Println("Server session terminated")
 	return nil
 }
